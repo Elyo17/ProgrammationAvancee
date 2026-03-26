@@ -1,0 +1,39 @@
+README_private.md
+solution/
+
+# Binaries and libraries
+*.exe
+*.out
+*.obj
+*.o
+*.a
+*.lib
+*.dll
+*.so
+*.exp
+*.pdb
+
+# CUDA / Visual Studio intermediate files
+*.ilk
+*.idb
+*.cudafe1.cpp
+*.cudafe1.gpu
+*.cudafe1.stub.c
+*.fatbin
+*.module_id
+*.objx
+*.manifest
+
+# Common generated images
+*.bmp
+*.pgm
+*.ppm
+*.png
+
+# Common generated data files
+*.bin
+*.txt
+*.pyd
+# Python caches and local build folders
+__pycache__/
+build/
