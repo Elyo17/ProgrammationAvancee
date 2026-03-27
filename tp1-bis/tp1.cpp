@@ -30,7 +30,7 @@ int main(int argc, char* argv[]) {
         cout << "You can also pass only a threshold to use the default image." << endl;
         return 1;
     }
-
+    cout << "passage fonction";
     string depthPath = kStudentConfig.defaultDepthPath;
     uint16_t threshold = static_cast<uint16_t>(kStudentConfig.defaultThreshold);
 

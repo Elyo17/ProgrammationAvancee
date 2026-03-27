@@ -19,7 +19,7 @@ void normalizeDepth(DepthImage& depth) {
     for (auto& value : depth.data) {
         value = static_cast<uint16_t>(
             (static_cast<uint32_t>(value - minVal) * 65535u) / (maxVal - minVal)
-            );
+         );
     }
 
 }
@@ -133,6 +133,13 @@ Image8 cropMask(const Image8& mask, int cropX, int cropY, int cropW, int cropH) 
     result.height = effectiveHeight;
     result.data.resize(static_cast<size_t>(result.width) * result.height);
 
+    for (int y = 0; y < effectiveHeight; ++y) {
+        for (int x = 0; x < effectiveWidth; ++x) {
+            result.data[y * result.width + x] =
+                mask.data[(cropY + y) * mask.width + (cropX + x)];
+        }
+    }
+
     return result;
 }
 
@@ -145,6 +152,7 @@ DepthImage maskDepth(const DepthImage& depth, const Image8& mask) {
     const size_t count = std::min(depth.data.size(), mask.data.size());
     for (size_t i = 0; i < count; ++i) {
         // TODO: Keep the depth value for foreground pixels and set the background to 0.
+        result.data[i] = (mask.data[i] == 255) ? depth.data[i] : 0;
     }
 
     return result;
@@ -174,6 +182,12 @@ DepthImage cropDepth(const DepthImage& depth, int cropX, int cropY, int cropW, i
     result.data.resize(static_cast<size_t>(result.width) * result.height);
 
     // TODO: Copy the selected rectangular region into the output depth image.
+    for (int y = 0; y < effectiveHeight; ++y) {
+        for (int x = 0; x < effectiveWidth; ++x) {
+            result.data[y * result.width + x] =
+                depth.data[(cropY + y) * depth.width + (cropX + x)];
+        }
+    }
 
 
     return result;
