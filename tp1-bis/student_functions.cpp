@@ -6,11 +6,21 @@ void normalizeDepth(DepthImage& depth) {
         return;
     }
 
-    // TODO: Find the minimum and maximum depth values in the image.
+    // Trouver le min et le max
+    uint16_t minVal = *std::min_element(depth.data.begin(), depth.data.end());
+    uint16_t maxVal = *std::max_element(depth.data.begin(), depth.data.end());
 
-    // Avoid division by zero if all values are the same.
+    // Éviter la division par zéro si tous les pixels ont la même valeur
+    if (minVal == maxVal) {
+        return;
+    }
 
-    // TODO: Apply the linear normalization formula to map values to [0, 65535].
+    // Normalisation linéaire vers [0, 65535]
+    for (auto& value : depth.data) {
+        value = static_cast<uint16_t>(
+            (static_cast<uint32_t>(value - minVal) * 65535u) / (maxVal - minVal)
+            );
+    }
 
 }
 
@@ -26,7 +36,11 @@ Image8 thresholdDepth(const DepthImage& depth, uint16_t threshold) {
     result.width = depth.width;
     result.height = depth.height;
     result.data.resize(depth.data.size(), 0);
-    //TODO loop on each pixel
+
+    for (size_t i = 0; i < depth.data.size(); ++i) {
+        result.data[i] = (depth.data[i] <= threshold) ? 255 : 0;
+    }
+
     return result;
 }
 
@@ -35,7 +49,26 @@ Image8 erodeMask(const Image8& mask) {
     result.width = mask.width;
     result.height = mask.height;
     result.data.resize(mask.data.size(), 0);
-    //TODO loop to erode one time
+    for (int y = 0; y < mask.height; ++y) {
+        for (int x = 0; x < mask.width; ++x) {
+            bool keep = true;
+            // Voisinage 3x3 (kernel carré)
+            for (int dy = -1; dy <= 1 && keep; ++dy) {
+                for (int dx = -1; dx <= 1 && keep; ++dx) {
+                    int nx = x + dx;
+                    int ny = y + dy;
+                    if (nx < 0 || nx >= mask.width || ny < 0 || ny >= mask.height) {
+                        keep = false; // bord traité comme background
+                    }
+                    else {
+                        if (mask.data[ny * mask.width + nx] == 0)
+                            keep = false;
+                    }
+                }
+            }
+            result.data[y * mask.width + x] = keep ? 255 : 0;
+        }
+    }
     return result;
 }
 
@@ -44,18 +77,36 @@ Image8 dilateMask(const Image8& mask) {
     result.width = mask.width;
     result.height = mask.height;
     result.data.resize(mask.data.size(), 0);
-    //TODO loop to dilate one time
+    for (int y = 0; y < mask.height; ++y) {
+        for (int x = 0; x < mask.width; ++x) {
+            bool activate = false;
+            // Voisinage 3x3
+            for (int dy = -1; dy <= 1 && !activate; ++dy) {
+                for (int dx = -1; dx <= 1 && !activate; ++dx) {
+                    int nx = x + dx;
+                    int ny = y + dy;
+                    if (nx >= 0 && nx < mask.width && ny >= 0 && ny < mask.height) {
+                        if (mask.data[ny * mask.width + nx] == 255)
+                            activate = true;
+                    }
+                }
+            }
+            result.data[y * mask.width + x] = activate ? 255 : 0;
+        }
+    }
 
     return result;
 }
 
 Image8 openMask(const Image8& mask) {
-    // TODO: Opening = erosion followed by dilation.
+    // Opening = érosion puis dilatation
+    return dilateMask(erodeMask(mask));
 
 }
 
 Image8 closeMask(const Image8& mask) {
-    // TODO: Closing = dilation followed by erosion.
+    // Closing = dilatation puis érosion
+    return erodeMask(dilateMask(mask));
 
 }
 
